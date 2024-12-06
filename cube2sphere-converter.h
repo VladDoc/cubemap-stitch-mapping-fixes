@@ -28,6 +28,7 @@ class Cube2SphereConverter
   void generateRaySpherical(Point3D &p_out, Point2D p_in);
   void generateRayParaboloid(Point3D &p_out, bool zpos, Point2D p_in);
   void generateRayOctahedron(Point3D &p_out, bool ypos, Point2D p_in);
+  void generateRayOctahedron1(Point3D &p_out, bool ypos, Point2D p_in);
   void readVals(byte *ptr, int &i, int &j, byte &r, byte &g, byte &b);
   void getRgbFromPoint(Point2D p_in, byte &r, byte &g, byte &b, bool pos, int tex);
   void populatePixel(int i, int j, byte &r, byte &g, byte &b, bool pos, int tex);

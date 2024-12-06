@@ -52,6 +52,25 @@ void Cube2SphereConverter::generateRayOctahedron(Point3D &p_out, bool ypos, Poin
   p_out.x = p_out.x/mag; p_out.y = p_out.y/mag; p_out.z = p_out.z/mag;
 }
 
+void Cube2SphereConverter::generateRayOctahedron1(Point3D &p_out, bool ypos, Point2D p_in) 
+{
+    double x = (2 * p_in.x) / output_width  - 1;
+    double z = (2 * p_in.y) / output_height - 1;
+
+    p_out.y = 1.0 - abs(x) - abs(z);
+
+    if(p_out.y > 0.0) {
+        p_out.x = x;  
+        p_out.z = z;
+    } else {
+        p_out.x = (1.0 - abs(z)) * (x >= 0.0 ? +1.0 : -1.0);
+        p_out.z = (1.0 - abs(x)) * (z >= 0.0 ? +1.0 : -1.0);
+    }
+    // normalize
+    double mag = sqrt((p_out.x * p_out.x) + (p_out.y * p_out.y) + (p_out.z * p_out.z));
+    p_out.x = p_out.x/mag; p_out.y = p_out.y/mag; p_out.z = p_out.z/mag;
+}
+
 void Cube2SphereConverter::generateRayParaboloid(Point3D &p_out, bool zpos, Point2D p_in)
 {
   p_out.x = p_in.x;
@@ -98,8 +117,10 @@ void Cube2SphereConverter::getRgbFromPoint(Point2D p_in, byte &r, byte &g, byte 
     double rad = sqrt((p_in.x * p_in.x) + (p_in.y * p_in.y));
     if(rad >= 1.01) {r = 255; g = 255; b = 255; return;}
     generateRayParaboloid(p, pos, p_in);
-  } else {
+  } else if(tex == 2) {
     generateRayOctahedron(p, pos, p_in);
+  } else if(tex == 3) {
+    generateRayOctahedron1(p, pos, p_in);
   }
   
   /* Projection Algorithm */
@@ -128,14 +149,15 @@ void Cube2SphereConverter::getRgbFromPoint(Point2D p_in, byte &r, byte &g, byte 
     }
   } else {
     if (yMag > zMag) {    // y is the face
+      // do not touch
       if (p.y<0.0) { 
 	n = 5;
-	i = (int) (((p.x/yMag) + 1.0)*input_width/2);
-        j = (int) (((-p.z/yMag) + 1.0)*input_height/2);
+	j = (int) (((p.x/yMag) + 1.0)*input_width/2);
+        i = (int) (((p.z/yMag) + 1.0)*input_height/2);
       } else { 
 	n = 4;
-	i = (int) (((p.x/yMag) + 1.0)*input_width/2);
-        j = (int) (((p.z/yMag) + 1.0)*input_height/2);
+	j = (int) (((-p.x/yMag) + 1.0)*input_width/2);
+        i = (int) (((p.z/yMag) + 1.0)*input_height/2);
       }
     } else {              // z is the face
       if (p.z<0.0) { 
@@ -181,18 +203,18 @@ void Cube2SphereConverter::convert(string outFile1, string outFile2, int xDim, i
       *(out_data_pos + offset + 0) = r;
       *(out_data_pos + offset + 1) = g;
       *(out_data_pos + offset + 2) = b;
-      if(tex != 0) {
-	populatePixel(i, j, r, g, b, false, tex);
-	*(out_data_neg + offset + 0) = r;
-	*(out_data_neg + offset + 1) = g;
-	*(out_data_neg + offset + 2) = b;
+      if(tex == 1 || tex == 2) {
+	    populatePixel(i, j, r, g, b, false, tex);
+	    *(out_data_neg + offset + 0) = r;
+	    *(out_data_neg + offset + 1) = g;
+	    *(out_data_neg + offset + 2) = b;
       }
     }
   }
   
   /* Finally, write to the file */
   stbi_write_png(outFile1.c_str(), output_width, output_height, 3, out_data_pos, output_width*3);
-  if(tex != 0) stbi_write_png(outFile2.c_str(), output_width, output_height, 3, out_data_neg, output_width*3);
+  if(tex == 1 || tex == 2) stbi_write_png(outFile2.c_str(), output_width, output_height, 3, out_data_neg, output_width*3);
   free(out_data_pos); if(tex != 0) {free(out_data_neg);}
 }
 

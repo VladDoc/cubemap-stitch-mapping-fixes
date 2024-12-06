@@ -27,7 +27,7 @@ using namespace std;
  
 void printUsage() {
   cout << "Error. Correct Usage: ./hev-mapConverter ['convToCube' or 'convFromCube'] "; 
-  cout << "['equirectangular' or 'paraboloid' or 'octahedral'] [# of pixel samples] ";
+  cout << "['equirectangular' or 'paraboloid' or 'octahedral' or 'octahedral1'] [# of pixel samples] ";
   cout << "['uniform' or 'jittered'] [cube-left.png] [cube-right.png] [cube-back.png] ";
   cout << "[cube-front.png] [cube-floor.png] [cube-ceiling.png] [output width] ";
   cout << "[projection-file-1.png] [(if necessary) projection-file-2.png]" << endl;
@@ -45,14 +45,19 @@ int main(int argc, char** argv)
   if(strcmp(argv[1], "convFromCube") == 0) toCube = false;
   
   /* Type of Projection */
-  int projectionType;
+  int projectionType = -1;
   if(strcmp(argv[2], "equirectangular") == 0) projectionType = 0;
   else if(strcmp(argv[2], "paraboloid") == 0) projectionType = 1;
   else if(strcmp(argv[2], "octahedral") == 0) projectionType = 2;
+  else if(strcmp(argv[2], "octahedral1") == 0) projectionType = 3;
   else printUsage();
   
+  // Non valid option
+  if(projectionType == -1) printUsage();
+
   /* Arguments Check II*/
-  if((projectionType != 0) && (argc == 13)) printUsage();
+  if((projectionType == 1 || 
+      projectionType == 2) && (argc == 13)) printUsage();
   
   /* Number of Samples */
   char *buf1; int numSamples = (int) strtol(argv[3], &buf1, 10);
@@ -77,8 +82,10 @@ int main(int argc, char** argv)
   else yDim = xDim; /* Image Must be Square so xDim == yDim */
   
   /* Output Files */
-  string outFile2, outFile1 = string(argv[12]);
-  if(projectionType != 0) outFile2 = string(argv[13]);
+  string outFile1 = string(argv[12]);
+  string outFile2;
+  if(projectionType == 1 || projectionType == 2) 
+    outFile2 = string(argv[13]);
   else outFile2 = string(argv[12]); /* Irrelevant */
   
   /* Conversion */
