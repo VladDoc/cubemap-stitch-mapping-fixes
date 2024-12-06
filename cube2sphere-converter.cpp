@@ -149,9 +149,9 @@ void Cube2SphereConverter::getRgbFromPoint(Point2D p_in, byte &r, byte &g, byte 
     }
   } else {
     if (yMag > zMag) {    // y is the face
-      // do not touch
       if (p.y<0.0) { 
 	n = 5;
+    // swap j, i to rotate y faces 90 degrees
 	j = (int) (((p.x/yMag) + 1.0)*input_width/2);
         i = (int) (((p.z/yMag) + 1.0)*input_height/2);
       } else { 
